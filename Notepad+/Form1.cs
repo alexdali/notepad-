@@ -43,8 +43,9 @@ namespace Notepad_
 
         
 
-        // init dictionnary for tabs and metadata collection
-        Dictionary<int, TabPageItem> dictTabPages = new Dictionary<int, TabPageItem>();
+        // init list for tabs and metadata collection
+        //Dictionary<int, TabPageItem> dictTabPages = new Dictionary<int, TabPageItem>();
+        List<TabPageItem> listTabPages = new List<TabPageItem>();
 
         /// <summary>
         /// Test
@@ -54,7 +55,6 @@ namespace Notepad_
         private void TabControl1_Selected(Object sender, TabControlEventArgs e)
         {
             //set info about tab and content into status bar
-            //if (tabControl1.TabCount != 0)
             if (tabControl1.TabCount > 1)
             {
                 SetTabStatusInfo();
@@ -73,7 +73,7 @@ namespace Notepad_
         }
 
         
-        //TO-DO: add new file to end
+        //TO-DO: add open file to the end
 
         /// <summary>
         /// Handle for 'Open' strip menu item
@@ -86,15 +86,14 @@ namespace Notepad_
                 return;
 
             string pathToFile = openFileDialog1.FileName;
-            string fileName = Path.GetFileName(pathToFile);
+            string fileName = Path.GetFileName(pathToFile); 
             //string fileText = File.ReadAllText(pathToFile);
             string title = fileName;
 
             TabPage newTabPage = new TabPage(title);
             RichTextBox richTextBox = new RichTextBox
             {
-                Dock = DockStyle.Fill,
-                //Text = fileText
+                Dock = DockStyle.Fill
             };
 
             string extensionOfFile = Path.GetExtension(pathToFile);
@@ -119,13 +118,13 @@ namespace Notepad_
             richTextBox.TextChanged += new EventHandler(CurrencyTextBox_TextChanged);
 
             newTabPage.Controls.Add(richTextBox);
-            //int indexNewTab = tabControl1.TabCount - 1;
+            
             int indexNewTab = GetIndexForInsertTab();
             //tabControl1.TabPages.Add(newTabPage);
             tabControl1.TabPages.Insert(indexNewTab, newTabPage);
-            
-            DictTabPagesAdd(indexNewTab, tabControl1.TabPages[indexNewTab]);
-            dictTabPages[indexNewTab].Title = newTabPage.Text;
+
+            ListTabPagesAdd(tabControl1.TabPages[indexNewTab]);
+            listTabPages[indexNewTab].Title = newTabPage.Text;
 
             tabControl1.SelectTab(indexNewTab);
 
@@ -140,19 +139,12 @@ namespace Notepad_
         /// <param name="e"></param>
         private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var currentTab = tabControl1.SelectedTab;
             int indexCurrentTab = tabControl1.SelectedIndex;
-            //if (saveFileDialog1.ShowDialog() == DialogResult.Cancel)
-            //    return;
 
-            //string filename = saveFileDialog1.FileName;
-            string fileName = dictTabPages[indexCurrentTab].Title;
-            //var textCurrentTab = currentTab.Controls[0].Text;
-            string textCurrentTab = dictTabPages[indexCurrentTab].RichTextBox.Text;
+            string fileName = listTabPages[indexCurrentTab].Title;
+
+            string textCurrentTab = listTabPages[indexCurrentTab].RichTextBox.Text;
             File.WriteAllText(fileName, textCurrentTab);
-
-            //string title = filename.ToString();
-            //currentTab.Text = title;
         }
 
         /// <summary>
@@ -170,20 +162,25 @@ namespace Notepad_
             string fileName = saveFileDialog1.FileName;
 
             //Check exist the current tab in Dictionary. If not then add the tab to dictionary
-            if (!dictTabPages.ContainsKey(indexCurrentTab))
-                DictTabPagesAdd(indexCurrentTab, currentTab);   //dictTabPages.Add(indexCurrentTab, currentTab);
+            foreach (TabPageItem tabPageItem in listTabPages)
+            {
+                if (!Object.ReferenceEquals(tabPageItem.TabPage,currentTab))            // if (!listTabPages.Contains(currentTab))
+                {
+                    ListTabPagesAdd(currentTab); 
+                }
+            }
 
-            dictTabPages[indexCurrentTab].Title = fileName;
 
-            var textCurrentTab = dictTabPages[indexCurrentTab].RichTextBox.Text;    //var textCurrentTab = currentTab.Controls[0].Text;           
+            // update property Title of TabPageItem from ListTabPages
+            listTabPages[indexCurrentTab].Title = fileName;
+
+            var textCurrentTab = listTabPages[indexCurrentTab].RichTextBox.Text;    
 
             File.WriteAllText(fileName, textCurrentTab);
 
-            //string title = filename.ToString();
             tabControl1.SelectedTab.Text = fileName;
         }
 
-        //TO-DO: new file add from menu strip need to correct add to dictionary
 
         /// <summary>
         /// /// Handle for 'New' strip menu item
@@ -196,56 +193,30 @@ namespace Notepad_
         }
 
         /// <summary>
-        /// Method for adding new tab to tabControl and Tab Dictionary
+        /// Method for adding new tab to tabControl and Tab List
         /// </summary>
         private void AddNewTab()
         {
             int lastIndex = GetIndexForInsertTab();
-            //if(tabControl1.TabCount > 1)
-            //{
-            //    lastIndex = tabControl1.TabCount - 2;
-            //}
-            //else
-            //{
-            //    lastIndex = 0;
-            //}
 
             InsertNewTab(lastIndex);
-            //var newTabPage = InitNewTab();
-            //tabControl1.TabPages.Add(newTabPage);
-            
-            //DictTabPagesAdd(lastIndex, tabControl1.TabPages[lastIndex]);
-            //dictTabPages[lastIndex].Title = newTabPage.Text;
-            //tabControl1.SelectTab(tabControl1.TabCount - 1);
-            //SetTabStatusInfo();
         }
 
         
         /// <summary>
-        /// Method for inserting new tab in Tab Collection and Tab Dictionary
+        /// Method for inserting new tab in Tab Collection and Tab List
         /// </summary>
         /// <param name="index">index for inserting the tab into collections</param>
         private void InsertNewTab(int index)
         {
             var newTabPage = InitNewTab(index);
-            //this.tabControl1.TabPages.Insert(lastIndex, "New Tab");
-            //string title = "New" + (index).ToString();
-            //this.tabControl1.TabPages.Insert(lastIndex, title);
-            //if (tabControl1.TabCount == 0)
-            //{
-            //    tabControl1.TabPages.Add(newTabPage);
-            //}
-            //else
-            //{
-                tabControl1.TabPages.Insert(index, newTabPage);
-            //}
-            //int lastIndex = tabControl1.TabCount - 1;
-            DictTabPagesAdd(index, tabControl1.TabPages[index]);
-            dictTabPages[index].Title = newTabPage.Text;
-            //tabControl1.SelectTab(tabControl1.TabCount - 1);
+
+            tabControl1.TabPages.Insert(index, newTabPage);
+            
+            ListTabPagesAdd(tabControl1.TabPages[index]);
+            listTabPages[index].Title = newTabPage.Text;
             tabControl1.SelectTab(index);
             SetTabStatusInfo();
-            //this.tabControl1.SelectedIndex = lastIndex;
         }
 
         /// <summary>
@@ -256,14 +227,12 @@ namespace Notepad_
         {
             //string title = "New " + (tabControl1.TabCount + 1).ToString();
             string title = "New " + (index + 1).ToString();
-            //string title = "+";
             TabPage newTabPage = new TabPage(title);
 
             RichTextBox richTextBox = new RichTextBox
             {
                 Dock = DockStyle.Fill
             };
-            //richTextBox.Text = fileText;
             richTextBox.TextChanged += new EventHandler(CurrencyTextBox_TextChanged);
 
             newTabPage.Controls.Add(richTextBox);
@@ -278,7 +247,7 @@ namespace Notepad_
             int indexForInsertTab;
             if (tabControl1.TabCount > 1)
             {
-                indexForInsertTab = tabControl1.TabCount - 2;
+                indexForInsertTab = tabControl1.TabCount - 1;
                 return indexForInsertTab;
             }
 
@@ -288,57 +257,74 @@ namespace Notepad_
 
         #endregion
 
-        #region Dictionary methods
+        #region List methods
 
         /// <summary>
-        /// Add tabPage to Tabs Dictionary
+        /// Add tabPage to Tabs List
         /// </summary>
-        /// <param name="indexNewTab">current index of the tab in the tabpages collection</param>
-        /// <param name="richTextBox">the instance of RichTextBox of the tab </param>
-        /// <param name="filename">the path to the file that is open on the tab</param>
-        //private void dictTabPagesAdd(string filename, RichTextBox richTextBox, int indexNewTab)
-        private void DictTabPagesAdd(int indexTab, TabPage tabPage)
+        /// <param name="tabPage">tabPage add to List</param>
+        private void ListTabPagesAdd(TabPage tabPage)
         {
-            //TabPageItem tabPageItem = new TabPageItem(tabControl1.TabPages[indexNewTab]);
+
             TabPageItem tabPageItem = new TabPageItem(tabPage);
-            //tabPageItem.FileName = filename;
-            foreach(Control control in tabPage.Controls)
+
+            foreach (Control control in tabPage.Controls)
             {
-                //if (control.GetType().Name == RichTextBox)
-                    if(control.GetType() == typeof(RichTextBox))
-                        tabPageItem.RichTextBox = (RichTextBox)control;
+                if (control.GetType() == typeof(RichTextBox))
+                    tabPageItem.RichTextBox = (RichTextBox)control;
             }
-            
+
             try
             {
-                if (!dictTabPages.ContainsKey(indexTab))
-                {
-                    dictTabPages.Add(indexTab, tabPageItem);
-
-                }
-                else
-                {
-                    throw new Exception("Dictionary dictTabPages contains the Index already!");
-                }
+                listTabPages.Add(tabPageItem);
             }
             catch (Exception ex)
             {
-
-                MessageBox.Show(ex.Message, "Index already exist", MessageBoxButtons.OK);
+                MessageBox.Show(ex.Message, "Error by Add TabPage to List", MessageBoxButtons.OK);
             }
 
-          
+
         }
+        /// <param name="indexNewTab">current index of the tab in the tabpages collection</param>
+        /// <param name="richTextBox">the instance of RichTextBox of the tab </param>
+        //private void DictTabPagesAdd(int indexTab, TabPage tabPage)
+        //{
+        //    //TabPageItem tabPageItem = new TabPageItem(tabControl1.TabPages[indexNewTab]);
+        //    TabPageItem tabPageItem = new TabPageItem(tabPage);
+        //    //tabPageItem.FileName = filename;
+        //    foreach(Control control in tabPage.Controls)
+        //    {
+        //            if(control.GetType() == typeof(RichTextBox))
+        //                tabPageItem.RichTextBox = (RichTextBox)control;
+        //    }
+
+        //    try
+        //    {
+        //        if (!dictTabPages.ContainsKey(indexTab))
+        //        {
+        //            dictTabPages.Add(indexTab, tabPageItem);
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("Dictionary dictTabPages contains the Index already!");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show(ex.Message, "Index already exist", MessageBoxButtons.OK);
+        //    }
+        //}
+
 
         /// <summary>
-        /// Remove tabPage from Dictionary
+        /// Remove tabPage from List
         /// </summary>
         /// <param name="indexTab">index of the tab to be removed</param>
-        private void DictTabPagesRemove(int indexTab)
+        private void ListTabPagesRemove(int indexTab)
         {
             try
             {
-                dictTabPages.Remove(indexTab);
+                listTabPages.RemoveAt(indexTab);
             }
             catch (Exception)
             {
@@ -371,7 +357,6 @@ namespace Notepad_
             }
             else
             {
-                //var closeImage = Properties.Resources.DeleteButton_Image;
                 var closeImage = Properties.Resources.CloseButton_Image;
             e.Graphics.DrawImage(closeImage,
                     (tabRect.Right - closeImage.Width),
@@ -420,8 +405,8 @@ namespace Notepad_
                     if (imageRect.Contains(e.Location))
                     {
                         this.tabControl1.TabPages.RemoveAt(i);
-                        // and remove from dictionary
-                        DictTabPagesRemove(i);
+                        // and remove from list
+                        ListTabPagesRemove(i);
                         break;
                     }
                 }
@@ -434,18 +419,7 @@ namespace Notepad_
         //{
         //    string title = "+";
         //    TabPage plusTabPage = new TabPage(title);
-
-        //    //RichTextBox richTextBox = new RichTextBox();
-        //    //richTextBox.Dock = DockStyle.Fill; 
-        //    //richTextBox.TextChanged += new EventHandler(CurrencyTextBox_TextChanged);
-        //    //newTabPage.Controls.Add(richTextBox);
-        //    //var plusTabPage = InitNewTab();
         //    tabControl1.TabPages.Add(plusTabPage);
-        //    //int lastIndex = tabControl1.TabCount - 1;
-        //    //DictTabPagesAdd(lastIndex, tabControl1.TabPages[lastIndex]);
-        //    //dictTabPages[lastIndex].Title = newTabPage.Text;
-        //    //tabControl1.SelectTab(tabControl1.TabCount - 1);
-        //    //SetTabStatusInfo();
         //    if(tabControl1.TabCount > 1)
         //        tabControl1.SelectTab(tabControl1.TabCount - 2);
         //}
@@ -484,12 +458,14 @@ namespace Notepad_
             {
                 //System.Diagnostics.Debug.WriteLine("Event: currencyTextBox_TextChanged");
                 int indexCurrentTab = tabControl1.SelectedIndex;
-                var richTextBoxCurrentTab = dictTabPages[indexCurrentTab].RichTextBox;
+                //var richTextBoxCurrentTab = dictTabPages[indexCurrentTab].RichTextBox;
+                // testlist
+                var richTextBoxCurrentTab = listTabPages[indexCurrentTab].RichTextBox;
                 SetContentInfo(richTextBoxCurrentTab);
             }
             catch (Exception)
             {
-                // If there is an error, display the text.
+                // If there is an error, display the error' message.
                 throw;
             }
         }
@@ -523,15 +499,7 @@ namespace Notepad_
             label_CountOfSymbols.Text = $"Count of symbols: {textLength}";
         }
 
-        //private void MenuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        //{
-
-        //}
         #endregion
 
-        //private void Label1_Click(object sender, EventArgs e)
-        //{
-
-        //}
     }
 }
