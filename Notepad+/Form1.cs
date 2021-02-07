@@ -58,6 +58,7 @@ namespace Notepad_
             if (tabControl1.TabCount > 1)
             {
                 SetTabStatusInfo();
+                SetContentInfo(e.TabPage);
             }
             
             //for test purpose
@@ -128,7 +129,7 @@ namespace Notepad_
 
             tabControl1.SelectTab(indexNewTab);
 
-            SetContentInfo(richTextBox);
+            SetContentInfo(newTabPage);
         }
 
 
@@ -458,10 +459,8 @@ namespace Notepad_
             {
                 //System.Diagnostics.Debug.WriteLine("Event: currencyTextBox_TextChanged");
                 int indexCurrentTab = tabControl1.SelectedIndex;
-                //var richTextBoxCurrentTab = dictTabPages[indexCurrentTab].RichTextBox;
-                // testlist
-                var richTextBoxCurrentTab = listTabPages[indexCurrentTab].RichTextBox;
-                SetContentInfo(richTextBoxCurrentTab);
+                //var richTextBoxCurrentTab = listTabPages[indexCurrentTab].RichTextBox;
+                SetContentInfo(listTabPages[indexCurrentTab].TabPage);
             }
             catch (Exception)
             {
@@ -488,14 +487,15 @@ namespace Notepad_
         /// set info about tab content into status bar
         /// </summary>
         /// <param name="richTextBoxCurrentTab">the richTextBox with content</param>
-        private void SetContentInfo(RichTextBox richTextBoxCurrentTab)
+        private void SetContentInfo(TabPage tabPage)  //SetContentInfo(RichTextBox richTextBoxCurrentTab)
         {
-            string lines = richTextBoxCurrentTab.Lines.Length.ToString();
-            string textLength = richTextBoxCurrentTab.TextLength.ToString();
+            RichTextBox richTextBox = (RichTextBox)tabPage.Controls[0];
+            string lines = richTextBox.Lines.Length.ToString();
+            string textLength = richTextBox.TextLength.ToString();
             //string textLength2 = richTextBoxCurrentTab.Text.Length.ToString();
-            string[] arrLines = richTextBoxCurrentTab.Text.Split('\n');
+            //string[] arrLines = richTextBox.Text.Split('\n');
             label_CountOfLines.Text = $"Count of lines: {lines}";
-            label_IndexOfTab.Text = $"Count of lines: {arrLines.Length}";
+            //label_IndexOfTab.Text = $"Count of lines: {lines.Length}";
             label_CountOfSymbols.Text = $"Count of symbols: {textLength}";
         }
 
