@@ -256,6 +256,19 @@ namespace Notepad_
 
         }
 
+        private void SelectNextOrPreviousTab(int indexTab)
+        {
+            // select the next or previous tab
+            if ((indexTab < (tabControl1.TabCount - 2)) && (indexTab != 0))
+            {
+                tabControl1.SelectTab(indexTab + 1);    // if exist next tab then select next tab
+            }
+            else if ((indexTab == (tabControl1.TabCount - 2)) && (indexTab != 0))
+            {
+                tabControl1.SelectTab(indexTab - 1);    // else select previous tab
+            }
+        }
+
         #endregion
 
         #region List methods
@@ -326,6 +339,7 @@ namespace Notepad_
             try
             {
                 listTabPages.RemoveAt(indexTab);
+                //SelectNextOrPreviousTab(indexTab);
             }
             catch (Exception)
             {
@@ -333,6 +347,8 @@ namespace Notepad_
             }
             
         }
+
+        
 
         #endregion
 
@@ -406,8 +422,10 @@ namespace Notepad_
                     if (imageRect.Contains(e.Location))
                     {
                         this.tabControl1.TabPages.RemoveAt(i);
+                        SelectNextOrPreviousTab(i);
                         // and remove from list
                         ListTabPagesRemove(i);
+                        
                         break;
                     }
                 }
